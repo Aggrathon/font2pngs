@@ -51,7 +51,8 @@
         Split text into words and turn them into images.
         The appearence can be formatted by font, size and coloring.
         All images have a transparent background and can be used for, e.g., creating watch faces for smart watches.
-        The names of additional fonts can be found <a href="https://fonts.google.com" target="_blank">here</a>.
+        To add a font you need its' name (either font already on your computer or a font found
+        <a href="https: //fonts.google.com" target="_blank">here</a>).
     </p>
     <a href="https://github.com/Aggrathon/font2pngs" class="source">View on GitHub</a>
 
@@ -208,7 +209,7 @@
     }
 
     function add_font() {
-        const name = window.prompt("Write the name of the font:\nSee fonts.google.com for alternatives.", "").trim();
+        const name = window.prompt("Write the name of the font:\nSee https://fonts.google.com for additional options.", "").trim();
         var url = "https://fonts.googleapis.com/css2?family=" + name.replace(" ", "+") + "&display=swap";
 
         var link = document.createElement("style");
