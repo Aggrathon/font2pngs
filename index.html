@@ -64,7 +64,7 @@
             </select>
             <button id="add-font" type="button">Add&nbsp;font</button>
             <label for="weight">Weight: </label>
-            <input type="number" value="4" id="weight">
+            <input type="number" value="400" step="100" id="weight">
             <label for="size">Size: </label>
             <input type="number" value="64" id="size">
         </div>
@@ -84,6 +84,18 @@
             <label for="color2"> Color&nbsp;2: </label>
             <input type="color" id="color2" value="#EE8800">
         </div>
+        <div class="row">
+            <label for="left"> Padding&nbsp;left: </label>
+            <input id="left" type="number" value="4">
+            <label for="right"> Right: </label>
+            <input id="right" type="number" value="4">
+            <label for="top"> Top: </label>
+            <input id="top" type="number" value="4">
+            <label for="bottom"> Bottom: </label>
+            <input id="bottom" type="number" value="4">
+            <label for="narrow"> Narrow: </label>
+            <input id="narrow" type="checkbox" checked=true, style="min-width: 1em;">
+        </div>
     </form>
     <h3>Results:</h3>
     <div id="images"></div>
@@ -100,6 +112,11 @@
         color1 = document.getElementById('color1'),
         color2 = document.getElementById('color2'),
         gradient = document.getElementById('gradient'),
+        left = document.getElementById('left'),
+        right = document.getElementById('right'),
+        topp = document.getElementById('top'),
+        bottom = document.getElementById('bottom'),
+        narrow = document.getElementById('narrow'),
         form = document.getElementById('form'),
         hidden = document.getElementById('hidden');
 
@@ -146,18 +163,24 @@
 
     function render_text(word) {
         var ctx = document.getElementById('canvas-' + word).getContext('2d');
-        const font_str = weight.value * 100 + " " + size.value + "px " + font.value;
+        const font_str = weight.value + " " + size.value + "px " + font.value;
         ctx.font = font_str;
         ctx.textBaseline = "top";
         ctx.fillStyle = get_fill(ctx);
-        var measure = ctx.measureText(word);
-        var measure_all = ctx.measureText(text.value);
-        ctx.canvas.width = measure.actualBoundingBoxLeft + measure.actualBoundingBoxRight + 8;
-        ctx.canvas.height = measure_all.actualBoundingBoxAscent + measure_all.actualBoundingBoxDescent + 8;
+        const measure = ctx.measureText(word);
+        const measure_all = ctx.measureText(text.value);
+        const bounds = measure.actualBoundingBoxLeft + measure.actualBoundingBoxRight;
+        const width = narrow.checked ? bounds : measure.width;
+        const pt = Number.parseFloat(topp.value),
+            pb = Number.parseFloat(bottom.value),
+            pl = Number.parseFloat(left.value),
+            pr = Number.parseFloat(right.value);
+        ctx.canvas.width = width + pl + pr;
+        ctx.canvas.height = measure_all.actualBoundingBoxAscent + measure_all.actualBoundingBoxDescent + pt + pb;
         ctx.font = font_str;
         ctx.textBaseline = "top";
         ctx.fillStyle = get_fill(ctx);
-        ctx.fillText(t, 4 + measure.actualBoundingBoxLeft, 4 + measure_all.actualBoundingBoxAscent);
+        ctx.fillText(t, measure.actualBoundingBoxLeft + (width - bounds) / 2 + pl, measure_all.actualBoundingBoxAscent + pt);
         document.getElementById('download-' + word).href = ctx.canvas.toDataURL();
     }
 
