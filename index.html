@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Font 2 PNGs</title>
+
+    <style>
+        canvas {
+            border: 1px black solid;
+            background-color: #FAF9F7;
+        }
+
+        h3 {
+            margin-bottom: 0px;
+        }
+
+        h1 {
+            margin: auto;
+            width: 100%;
+            text-align: center;
+        }
+
+        .row {
+            flex-direction: row;
+            display: flex;
+            align-items: center;
+            margin-bottom: 1px;
+            gap: 3px;
+        }
+
+        textarea,
+        input {
+            display: flex;
+            flex-grow: 1;
+            flex-shrink: 1;
+            min-width: 3em;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Font 2 PNGs</h1>
+    <p>
+        Split text into words and turn them into images.
+        The appearence can be formatted by font, size and coloring.
+        All images have a transparent background and can be used for, e.g., creating watch faces for smart watches.
+        The names of additional fonts can be found <a href="https://fonts.google.com" target="_blank">here</a>.
+    </p>
+
+    <h3>Configuration:</h3>
+    <form id="form">
+        <div class="row">
+            <label for="text">Text:</label>
+            <textarea id='text'>0 1 2 3 4 5 6 7 8 9</textarea>
+        </div>
+        <div class="row">
+            <label for="font">Font: </label>
+            <select id="font">
+                <option>sans-serif</option>
+                <option>serif</option>
+                <option>cursive</option>
+                <option>monospace</option>
+            </select>
+            <button id="add-font" type="button">Add&nbsp;font</button>
+            <label for="weight">Weight: </label>
+            <input type="number" value="4" id="weight">
+            <label for="size">Size: </label>
+            <input type="number" value="64" id="size">
+        </div>
+        <div class="row">
+            <label for="gradient"> Gradient: </label>
+            <select id="gradient">
+                <option>Vertical</option>
+                <option>Horizontal</option>
+                <option>Diagonal 1</option>
+                <option>Diagonal 2</option>
+                <option>Radial 1</option>
+                <option>Radial 2</option>
+                <option>Single</option>
+            </select>
+            <label for="color1"> Color&nbsp;1: </label>
+            <input type="color" id="color1" value="#8800BB">
+            <label for="color2"> Color&nbsp;2: </label>
+            <input type="color" id="color2" value="#EE8800">
+        </div>
+    </form>
+    <h3>Results:</h3>
+    <div id="images"></div>
+    <button id='down-all'>Save all</button>
+    <div id="hidden" style="visibility: hidden;"></div>
+</body>
+
+<script>
+    var text = document.getElementById('text'),
+        images = document.getElementById('images'),
+        font = document.getElementById('font'),
+        size = document.getElementById('size'),
+        weight = document.getElementById('weight'),
+        color1 = document.getElementById('color1'),
+        color2 = document.getElementById('color2'),
+        gradient = document.getElementById('gradient'),
+        form = document.getElementById('form'),
+        hidden = document.getElementById('hidden');
+
+    function create_canvas(word) {
+        return "<a id='download-" + word + "' download='" + word + ".png'><canvas id='canvas-" + word + "'></canvas></a>\n"
+    }
+
+    function get_fill(ctx) {
+        switch (gradient.value) {
+            case 'Vertical':
+                var grad = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+                grad.addColorStop(0, color1.value);
+                grad.addColorStop(1, color2.value);
+                return grad;
+            case 'Horizontal':
+                var grad = ctx.createLinearGradient(0, 0, ctx.canvas.width, 0);
+                grad.addColorStop(0, color1.value);
+                grad.addColorStop(1, color2.value);
+                return grad;
+            case 'Diagonal 1':
+                var grad = ctx.createLinearGradient(0, 0, ctx.canvas.width, ctx.canvas.height);
+                grad.addColorStop(0, color1.value);
+                grad.addColorStop(1, color2.value);
+                return grad;
+            case 'Diagonal 2':
+                var grad = ctx.createLinearGradient(ctx.canvas.width, 0, 0, ctx.canvas.height);
+                grad.addColorStop(0, color1.value);
+                grad.addColorStop(1, color2.value);
+                return grad;
+            case 'Radial 1':
+                var grad = ctx.createRadialGradient(ctx.canvas.width / 2, ctx.canvas.height / 2, 0, ctx.canvas.width / 2, ctx.canvas.height / 2, Math.max(ctx.canvas.width / 2, ctx.canvas.height / 2));
+                grad.addColorStop(0, color1.value);
+                grad.addColorStop(1, color2.value);
+                return grad;
+            case 'Radial 2':
+                var grad = ctx.createRadialGradient(ctx.canvas.width / 2, ctx.canvas.height / 2, 0, ctx.canvas.width / 2, ctx.canvas.height / 2, Math.min(ctx.canvas.width / 2, ctx.canvas.height / 2));
+                grad.addColorStop(0, color1.value);
+                grad.addColorStop(1, color2.value);
+                return grad;
+            default:
+                return ctx.fillStyle = color1.value;
+        }
+    }
+
+    function render_text(word) {
+        var ctx = document.getElementById('canvas-' + word).getContext('2d');
+        const font_str = weight.value * 100 + " " + size.value + "px " + font.value;
+        ctx.font = font_str;
+        ctx.textBaseline = "top";
+        ctx.fillStyle = get_fill(ctx);
+        var measure = ctx.measureText(word);
+        var measure_all = ctx.measureText(text.value);
+        ctx.canvas.width = measure.actualBoundingBoxLeft + measure.actualBoundingBoxRight + 8;
+        ctx.canvas.height = measure_all.actualBoundingBoxAscent + measure_all.actualBoundingBoxDescent + 8;
+        ctx.font = font_str;
+        ctx.textBaseline = "top";
+        ctx.fillStyle = get_fill(ctx);
+        ctx.fillText(t, 4 + measure.actualBoundingBoxLeft, 4 + measure_all.actualBoundingBoxAscent);
+        document.getElementById('download-' + word).href = ctx.canvas.toDataURL();
+    }
+
+    function update() {
+        images.innerHTML = "";
+        for (t of text.value.trim().split(" ")) {
+            images.innerHTML += create_canvas(t);
+        }
+        for (t of text.value.split(" ")) {
+            render_text(t);
+        }
+    }
+
+    function download_all() {
+        for (t of text.value.trim().split(" ")) {
+            document.getElementById('download-' + t).click()
+        }
+    }
+
+    function add_font() {
+        const name = window.prompt("Write the name of the font:\nSee fonts.google.com for alternatives.", "").trim();
+        var url = "https://fonts.googleapis.com/css2?family=" + name.replace(" ", "+") + "&display=swap";
+
+        var link = document.createElement("style");
+        link.innerHTML = "@import url('" + url + "')";
+        document.head.appendChild(link);
+
+        font.innerHTML += "<option>" + name + "</option>";
+        hidden.innerHTML += "<div style='font-family:" + name + "'>" + name + "</div>";
+        setTimeout(function () {
+            // TODO check if the font has actually been loaded
+            font.value = name;
+            update();
+        }, 500);
+    }
+
+    form.oninput = update;
+    form.action = update;
+    form.onsubmit = update;
+    document.getElementById('add-font').onclick = add_font;
+    document.getElementById('down-all').onclick = download_all;
+
+    update();
+</script>
+
+</html>
